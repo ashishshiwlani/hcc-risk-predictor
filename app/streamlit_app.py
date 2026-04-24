@@ -31,6 +31,7 @@ from src.synthetic_data import generate_hcc_dataset
 from src.feature_engineering import extract_features
 from src.model import HCCRiskModel, RISK_LABELS
 from src.train import train
+from src.pdf_report import generate_clinical_pdf
 
 
 # ---------------------------------------------------------------------------
@@ -278,6 +279,30 @@ with col_protect:
             st.markdown(f"- **{feat.upper()}**: contribution `−{val:.3f}`")
     else:
         st.write("No strong protective factors identified.")
+
+st.divider()
+
+# ── PDF Clinical Summary Export ───────────────────────────────────────────────
+st.subheader("📄 Export Clinical Summary")
+st.caption(
+    "Download a one-page PDF report with the risk gauge, probabilities, "
+    "FIB-4/APRI scores, and SHAP factor table."
+)
+
+try:
+    pdf_bytes = generate_clinical_pdf(result, patient)
+    st.download_button(
+        label="⬇️ Download PDF Clinical Summary",
+        data=pdf_bytes,
+        file_name=f"hcc_risk_report_{result.risk_category.lower()}.pdf",
+        mime="application/pdf",
+        help="One-page PDF with risk gauge, probabilities, clinical scores and SHAP factors",
+    )
+except Exception as _pdf_err:
+    st.warning(
+        f"PDF export requires reportlab. "
+        f"Install with `pip install reportlab` and restart the app.  ({_pdf_err})"
+    )
 
 st.divider()
 
